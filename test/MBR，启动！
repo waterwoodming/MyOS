@@ -1,0 +1,43 @@
+接下来我们讲讲怎么把刚才写好的mbr程序真正加载到一台裸机中
+创建一个硬盘映像
+create vdisk file=d:\dingst.vhd maximum=10 type=fixed
+;我是创建到了d：\dingst.vhd大家随意，后缀名记得是.vhd这个不要变
+
+nasm 文件路径 -o 文件路径;编译一下写好的MBR
+;例子，切记，编译好的文件后缀名为.bin
+nasm D:\src\hello.asm -o D:\src\bootDINGST.bin
+;编译完后，把bootDINGST.bin文件放到和dd.exe相同的目录下，
+;然后使用下列命令把编译好的MBR写入到创建的硬盘映像里
+dd if=bootDINGST.bin of=d:\\dingst.vhd bs=512 count=1
+
+;如果出现下列类似内容，就说明写入成功了
+;rawwrite dd for windows version 0.5.
+;Written by John Newbigin <jn@it.swin.edu.au>
+;This program is covered by the GPL.  See copying.txt for details
+;1+0 records in
+;1+0 records out
+接下来使用Oracle vm virtualBox 创建一个虚拟机，把刚才的硬盘映像导入进去就行
+
+打开 Oracle VM VirtualBox：
+
+首先打开 Oracle VM VirtualBox 虚拟机管理器。
+创建新的虚拟机：
+
+在 VirtualBox 界面中点击 "新建" 创建一个新的虚拟机。按照向导的指示进行操作，包括选择操作系统类型和版本。
+分配内存和处理器：;这里分配64MB的内存就行，切记，一定不能大了，64MB就行。
+
+在创建虚拟机的过程中，分配适当的内存和处理器资源给虚拟机。
+创建新的虚拟硬盘：
+
+在创建虚拟机的过程中，选择 "创建虚拟硬盘" 选项，并按照向导创建一个新的虚拟硬盘。
+选择硬盘文件类型：
+
+在创建虚拟硬盘的过程中，选择硬盘文件的类型。如果你已经有了自己创建的硬盘映像文件，选择 "现有硬盘"。
+导入自己创建的硬盘映像：
+
+在选择现有硬盘的对话框中，浏览并选择你自己创建的硬盘映像文件。
+完成虚拟机创建：
+
+按照向导的指示完成虚拟机的创建过程。
+
+
