@@ -1,0 +1,144 @@
+[org 0x7c00]
+
+; 设置屏幕模式为文本模式，清除屏幕
+mov ax, 3
+int 0x10
+
+; 初始化段寄存器
+mov ax, 0
+mov ds, ax
+mov es, ax
+mov ss, ax
+mov sp, 0x7c00
+
+mov si, booting;将变量booting写入寄存器si，这是汇编语言函数调用的方法，把参数写入寄存器后在函数体内使用
+call print;这里调用print函数在屏幕上输出了一些字符，详细函数体定义在下面
+
+;上面是显示一些基本的提示字符，下面我们正式开始读取硬盘上的内容
+
+mov edi, 0x1000 ; 读取的目标内存，就是设置一下，从硬盘读取的内容放在内存的哪个地址。为什么放在这里？
+                ;聪明的读者应该有印象，这时操作系统还没有被加载到内存，现在是实模式，cup只能访问1MB内存
+                ;这1MB内存布局是由协议约定的，所以放这里
+mov ecx, 2      ; 起始扇区，设置读取的扇区号
+mov bl, 4     
+                ; 扇区数量
+
+call read_disk
+
+cmp word [0x1000], 0x55aa
+jnz error
+
+jmp 0:0x1008
+
+; 阻塞
+jmp $
+
+read_disk:
+
+    ; 设置读写扇区的数量
+    mov dx, 0x1f2
+    mov al, bl
+    out dx, al
+
+    inc dx; 0x1f3
+    mov al, cl; 起始扇区的前八位
+    out dx, al
+
+    inc dx; 0x1f4
+    shr ecx, 8
+    mov al, cl; 起始扇区的中八位
+    out dx, al
+
+    inc dx; 0x1f5
+    shr ecx, 8
+    mov al, cl; 起始扇区的高八位
+    out dx, al
+
+    inc dx; 0x1f6
+    shr ecx, 8
+    and cl, 0b1111; 将高四位置为 0
+
+    mov al, 0b1110_0000;
+    or al, cl
+    out dx, al; 主盘 - LBA 模式
+
+    inc dx; 0x1f7
+    mov al, 0x20; 读硬盘
+    out dx, al
+
+    xor ecx, ecx; 将 ecx 清空
+    mov cl, bl; 得到读写扇区的数量
+
+    .read:
+        push cx; 保存 cx
+        call .waits; 等待数据准备完毕
+        call .reads; 读取一个扇区
+        pop cx; 恢复 cx
+        loop .read
+
+    ret
+
+    .waits:
+        mov dx, 0x1f7
+        .check:
+            in al, dx
+            jmp $+2; nop 直接跳转到下一行
+            jmp $+2; 一点点延迟
+            jmp $+2
+            and al, 0b1000_1000
+            cmp al, 0b0000_1000
+            jnz .check
+        ret
+
+    .reads:
+        mov dx, 0x1f0
+        mov cx, 256; 一个扇区 256 字
+        .readw:
+            in ax, dx
+            jmp $+2; 一点点延迟
+            jmp $+2
+            jmp $+2
+            mov [edi], ax
+            add edi, 2
+            loop .readw
+        ret
+
+print:
+    mov ah, 0x0e
+.next:
+    mov al, [si];上面代码mov si, booting，已经把booting存入了si寄存器，这里把si里的数据存入了al
+    cmp al, 0;比较al与0.   如果相等，执行jz.done。否则执行 int 0x10
+    jz .done;al与0相同，说明booting的数据没有成功写入al，这就无法进行之后的步骤，所以调用.done退出
+    int 0x10;能执行到这里，说明数据成功写入了，这行代码会调用固件的BIOS在屏幕上输出字符
+    inc si
+    jmp .next
+    ;mov al, [si] 将si寄存器指向的内存地址中的值（一个字符）加载到寄存器al中。
+    ;然后，int 0x10 调用BIOS中断，根据ah和al中的内容，在屏幕上打印相应的字符。
+    ;接着，inc si 递增si寄存器的值，以便加载下一个字符。
+    ;最后，通过 jmp .next 实现循环，直到遇到字符串结尾的零值为止（cmp al, 0）。
+.done:
+    ret;ret就是退出的意思
+
+booting:
+    db "Booting Onix...", 10, 13, 0
+    
+;这段代码是用汇编语言中的数据定义指令db来定义一段字节序列。具体含义如下：
+;"Booting Onix..."：这部分是一个包含文本字符的字符串，表示要输出的文本内容是"Booting Onix..."。
+;10, 13：这两个数字分别代表换行符和回车符，用于控制输出格式，即在输出文本后添加换行操作。
+;0：表示字符串的结尾，通常用于标识字符串的结束。
+;因此，整个代码的含义是定义了一个包含特定文本和控制字符的字节序列，可以在程序中用于进行文本输出，
+;并在输出完毕后执行换行操作
+
+error:
+    mov si, .msg
+    call print
+    hlt; 让 CPU 停止
+    jmp $
+    .msg db "Booting Error!!!", 10, 13, 0
+
+; 填充 0
+times 510 - ($ - $$) db 0
+
+; 主引导扇区的最后两个字节必须是 0x55 0xaa
+; dw 0xaa55
+db 0x55, 0xaa
