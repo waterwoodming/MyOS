@@ -1,11 +1,39 @@
 
 开发环境：
-  因为技术浅薄，不会过于复杂的环境，只使用了下列软件：
-     nasm   编译汇编语言的编译器
-     dd.exe (一个可以将二进制文件复制到硬盘镜像的软件)
-     Oracle vm virtualBox 一个虚拟机软件
-     (虚拟机软件，什么是虚拟机？就是通过这个软件，在自己的电脑上通过软件技术虚拟出了另一台电脑，
-       这台电脑使用已有pc的硬件资源，但可以安装操作系统，和其他应用软件，并且在虚拟机进行各种测试不会影响到真实pc。)
-咱这个环境确实比较简陋，但它简单呐！！！
-我会抽空学一下bochs，这个可以模拟计算机硬件，让我们的操作系统在上面运行，这个东西配置比较复杂
-我学会了在上传
+  
+1. 如果使用的是Ubuntu, 需要用sudo apt install nasm 和 sudo apt install bochs-x, 
+这里不要下载bochs, 这个没有display_library: x
+2. 如果使用的是Ubuntu 22.04这个版本(别的版本没试过),  
+大概率下载bochs-x最后也不能正确运行(debugger界面报错: physical memory read error, 
+ 现象: bochs界面黑屏, 不显示字符). 这个情况需要到官网下载源码, 自行编译才能解决.
+
+ 现在以Ubuntu22.04版本为例搭建开发环境
+
+下载nasm汇编语言编译器
+sudo apt install nasm或者sudo apt-get install nasm
+下载bochs所需要的前置工具
+sudo apt-get install libghc-x11-dev
+sudo apt-get install xorg-dev
+sudo apt-get install libgtk2.0-dev
+sudo apt-get install libgtk-3-dev
+sudo apt-get install libxpm-dev
+sudo apt-get install libxrandr-dev
+sudo apt-get install libx11-dev xserver-xorg-dev xorg-dev libsdl1.2-dev bximage vgabios build-essential nasm 
+下面下载bochs源码
+wget https://sourceforge.net/projects/bochs/files/bochs/2.7/bochs-2.7.tar.gz
+解压
+tar zxvf bochs-2.7.tar.gz
+进入这个目录
+cd bochs-2.7/
+调整配置文件
+./configure --enable-debugger --enable-disasm --enable-iodebug --enable-debugger-gui --enable-x86-debugger --with-x --with-x11
+编译
+make
+安装
+sudo make install
+最后，如果还不能执行bochs的命令，看看是不是没有添加环境变量。
+
+
+
+
+
