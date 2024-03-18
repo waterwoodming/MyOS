@@ -9,7 +9,7 @@
 
 prefix          = /usr/local
 srcdir          = .
-abs_srcdir      = /home/wmmlinux/MyOSKF/bochs_code/bochs-2.7/doc/docbook
+abs_srcdir      = /home/wmmlinux/MyOS/bochs/bochs-2.7/doc/docbook
 docdir          = $(prefix)/share/doc/bochs
 WGET = wget
 TARGZ = bochsdoc.tar.gz

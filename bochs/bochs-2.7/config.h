@@ -612,9 +612,9 @@ typedef Bit32u bx_phy_address;
 
 #endif
 
-#define BX_GDBSTUB 0
-#define BX_DEBUGGER 1
-#define BX_DEBUGGER_GUI 1
+#define BX_GDBSTUB 1
+#define BX_DEBUGGER 0
+#define BX_DEBUGGER_GUI 0
 
 #define BX_INSTRUMENTATION 0
 
@@ -622,7 +622,7 @@ typedef Bit32u bx_phy_address;
 #define BX_NO_LOGGING 0
 
 // enable BX_ASSERT checks
-#define BX_ASSERT_ENABLE 1
+#define BX_ASSERT_ENABLE 0
 
 // enable statistics collection
 #define BX_ENABLE_STATISTICS 1

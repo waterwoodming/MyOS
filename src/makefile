@@ -61,4 +61,4 @@ clean:
 
 .PHONY: bochs
 bochs: $(BUILD)/master.img
-	bochs -q
+	bochs -q -f ../bochs/bochsrc
